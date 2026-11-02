@@ -1,0 +1,14 @@
+{
+  "upstream": "https://github.com/grafana/grafana",
+  "tag": "v13.3.0",
+  "commit": "752e3462ff71a43a5c1fb62d00a482fa2dc0ee6a",
+  "source_directory": "source",
+  "license": "AGPL-3.0-only; see source/LICENSE and source/LICENSING.md for exceptions",
+  "runtime_image": "grafana/grafana:13.3.0@sha256:488984b716c0862639f91a698adbe2862677a5a07bad42da5f03f3030883b205",
+  "skill_repository": "https://github.com/kasrapmb/REA_skills_Codex",
+  "skill_commit": "e7c312d45da8ceea3864ed4afc8fbfc627dac53f",
+  "live_site_observation": "HTTPS GET https://play.grafana.org/ returned HTTP 403; no live UI or dashboard export obtained",
+  "scope": "Complete official source snapshot without Git metadata; custom local dashboard configuration; not a verified copy of the live deployment",
+  "runtime_reported_commit": "6f8ce3c693b493043ebcd4787566d2b6b118b0f0",
+  "runtime_source_relationship": "Same release version; image health reports a different build commit from the release-tag source snapshot. Exact reproducible-build equivalence is not established."
+}

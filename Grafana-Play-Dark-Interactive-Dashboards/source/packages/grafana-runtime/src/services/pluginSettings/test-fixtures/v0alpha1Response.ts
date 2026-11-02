@@ -1,0 +1,151 @@
+import { type Settings } from '../types';
+
+export const myOrgTestAppSettings: Settings = structuredClone({
+  kind: 'Settings',
+  apiVersion: 'myorg-test-app/v0alpha1',
+  metadata: {
+    name: 'myorg-test-app',
+    namespace: 'default',
+    uid: '',
+    resourceVersion: '',
+  },
+  spec: {
+    enabled: true,
+    pinned: false,
+    jsonData: {
+      apiUrl: 'http://api-url.com',
+    },
+  },
+  secure: {
+    apiKey: {
+      name: 'lps-sv-48fe6a860af4f72f3eefd0032e207ea1f942fcc88693411993ff778462867d27',
+    },
+    password: {
+      name: 'lps-sv-58d8e08c33cf0bd6d7545df6d7957333f5604371ff87ca294e4572e6d9bedb04',
+    },
+  },
+});
+
+export const clockPanelOnPremPluginMeta = structuredClone({
+  angular: { detected: false },
+  angularDetected: false,
+  autoEnabled: false,
+  baseUrl: 'public/plugins/grafana-clock-panel',
+  dependencies: {
+    extensions: { exposedComponents: [] },
+    grafanaDependency: '>=11.0.0',
+    grafanaVersion: '*',
+    plugins: [],
+  },
+  enabled: false,
+  extensions: {
+    addedComponents: [],
+    addedFunctions: [],
+    addedLinks: [],
+    exposedComponents: [],
+    extensionPoints: [],
+  },
+  hasUpdate: false,
+  id: 'grafana-clock-panel',
+  includes: [],
+  info: {
+    author: { name: 'Grafana Labs', url: 'https://grafana.com' },
+    build: {},
+    description: 'Clock panel for grafana',
+    keywords: ['clock', 'panel'],
+    links: [
+      { name: 'Project site', url: 'https://github.com/grafana/clock-panel' },
+      { name: 'MIT License', url: 'https://github.com/grafana/clock-panel/blob/master/LICENSE' },
+    ],
+    logos: {
+      large: 'public/plugins/grafana-clock-panel/img/clock.svg',
+      small: 'public/plugins/grafana-clock-panel/img/clock.svg',
+    },
+    screenshots: [
+      { name: 'Showcase', path: 'public/plugins/grafana-clock-panel/img/screenshot-showcase.png' },
+      { name: 'Options', path: 'public/plugins/grafana-clock-panel/img/screenshot-clock-options.png' },
+    ],
+    updated: '2025-12-10',
+    version: '3.2.0',
+  },
+  jsonData: {},
+  latestVersion: '',
+  loadingStrategy: 'script',
+  module: 'public/plugins/grafana-clock-panel/module.js',
+  name: 'Clock',
+  pinned: false,
+  secureJsonFields: {},
+  signature: 'valid',
+  signatureOrg: 'Grafana Labs',
+  signatureType: 'grafana',
+  state: '',
+  type: 'panel',
+});
+
+export const testdataPluginMeta = structuredClone({
+  aliasIDs: undefined,
+  angular: { detected: false },
+  angularDetected: false,
+  autoEnabled: false,
+  baseUrl: 'app/plugins/datasource/grafana-testdata-datasource/dist',
+  dependencies: {
+    extensions: { exposedComponents: [] },
+    grafanaDependency: '>=10.3.0-0',
+    grafanaVersion: '*',
+    plugins: [],
+  },
+  enabled: false,
+  extensions: {
+    addedComponents: [],
+    addedFunctions: [],
+    addedLinks: [],
+    exposedComponents: [],
+    extensionPoints: [],
+  },
+  hasUpdate: false,
+  id: 'grafana-testdata-datasource',
+  includes: [
+    {
+      addToNav: false,
+      component: '',
+      defaultNav: false,
+      icon: '',
+      name: 'Streaming Example',
+      path: 'dashboards/streaming.json',
+      role: 'Viewer',
+      slug: 'streaming-example',
+      type: 'dashboard',
+      uid: '',
+    },
+  ],
+  info: {
+    author: { name: 'Grafana Labs', url: 'https://grafana.com' },
+    build: {},
+    description: 'Generates test data in different forms',
+    keywords: [],
+    links: [
+      { name: 'Raise issue', url: 'https://github.com/grafana/grafana/issues/new' },
+      { name: 'Documentation', url: 'https://grafana.com/docs/grafana/latest/datasources/testdata/' },
+    ],
+    logos: {
+      large: 'app/plugins/datasource/grafana-testdata-datasource/dist/img/testdata.svg',
+      small: 'app/plugins/datasource/grafana-testdata-datasource/dist/img/testdata.svg',
+    },
+    screenshots: [],
+    updated: '',
+    version: '12.4.0-pre',
+  },
+  jsonData: {},
+  latestVersion: '',
+  loadingStrategy: 'script',
+  module: 'app/plugins/datasource/grafana-testdata-datasource/dist/module.js',
+  moduleHash: undefined,
+  name: 'TestData',
+  pinned: false,
+  secureJsonFields: {},
+  signature: 'internal',
+  signatureOrg: '',
+  signatureType: '',
+  state: '',
+  type: 'datasource',
+});

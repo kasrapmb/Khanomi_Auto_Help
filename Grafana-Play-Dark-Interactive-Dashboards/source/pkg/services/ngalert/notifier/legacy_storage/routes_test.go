@@ -1,0 +1,395 @@
+package legacy_storage
+
+import (
+	"fmt"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	policy_exports "github.com/grafana/grafana/pkg/services/ngalert/api/test-data/policy-exports"
+	"github.com/grafana/grafana/pkg/services/ngalert/models"
+	v1 "github.com/grafana/grafana/pkg/services/ngalert/notifier/legacy_storage/v1"
+	"github.com/grafana/grafana/pkg/services/sqlstore/migrations/ualert"
+)
+
+func TestConfigRevision_GetManagedRoute(t *testing.T) {
+	rev := testConfig()
+
+	for name, expected := range rev.Config.ManagedRoutes {
+		t.Run(fmt.Sprintf("returns managed route %s", name), func(t *testing.T) {
+			got := rev.GetManagedRoute(name)
+			require.NotNil(t, got)
+			assert.Equal(t, v1.NewManagedRoute(name, expected), got)
+		})
+	}
+
+	t.Run("returns user-defined route", func(t *testing.T) {
+		got := rev.GetManagedRoute(models.DefaultRoutingTreeName)
+		require.NotNil(t, got)
+		assert.EqualValues(t, models.DefaultRoutingTreeName, got.UID)
+		assert.Equal(t, v1.NewManagedRoute(models.DefaultRoutingTreeName, rev.Config.AlertmanagerConfig.Route), got)
+	})
+
+	t.Run("returns nil if not found", func(t *testing.T) {
+		require.Nil(t, rev.GetManagedRoute("missing"))
+	})
+}
+
+func TestConfigRevision_DefaultRoutingTreeAliases(t *testing.T) {
+	// The default (root) tree must be addressable by both its canonical name and the legacy alias
+	// so existing clients (e.g. Terraform) that reference "user-defined" keep working.
+	t.Run("both names resolve to the root route", func(t *testing.T) {
+		for _, name := range []string{models.DefaultRoutingTreeName, models.DefaultRoutingTreeNameAlias} {
+			t.Run(name, func(t *testing.T) {
+				rev := testConfig()
+				got := rev.GetManagedRoute(name)
+				require.NotNil(t, got)
+				// The underlying route is the root route regardless of which alias was used.
+				assert.Equal(t, v1.NewManagedRoute(name, rev.Config.AlertmanagerConfig.Route), got)
+				// Identity is canonical so RBAC scopes and provenance keys are stable across aliases.
+				assert.Equal(t, models.DefaultRoutingTreeName, got.GetUID())
+				assert.Equal(t, "", got.ResourceID())
+			})
+		}
+	})
+
+	t.Run("both names are reserved and cannot be created as managed routes", func(t *testing.T) {
+		subtree := v1.Route{Receiver: testConfig().Config.AlertmanagerConfig.Route.Receiver}
+		for _, name := range []string{models.DefaultRoutingTreeName, models.DefaultRoutingTreeNameAlias} {
+			t.Run(name, func(t *testing.T) {
+				_, err := testConfig().CreateManagedRoute(name, subtree)
+				assert.ErrorIs(t, err, models.ErrRouteExists)
+				assert.ErrorContains(t, err, "reserved")
+			})
+		}
+	})
+}
+
+func TestConfigRevision_GetManagedRoutes(t *testing.T) {
+	rev := testConfig()
+
+	t.Run("returns all managed routes", func(t *testing.T) {
+		routes := rev.GetManagedRoutes()
+
+		expected := make([]*v1.ManagedRoute, 0, len(rev.Config.ManagedRoutes)+1)
+		for name, mr := range rev.Config.ManagedRoutes {
+			expected = append(expected, v1.NewManagedRoute(name, mr))
+		}
+		expected = append(expected, v1.NewManagedRoute(models.DefaultRoutingTreeName, rev.Config.AlertmanagerConfig.Route))
+
+		assert.Len(t, routes, len(expected))
+		assert.ElementsMatch(t, routes, expected)
+	})
+}
+
+func TestConfigRevision_CreateManagedRoute(t *testing.T) {
+	origRev := testConfig()
+	subtree := v1.Route{
+		Receiver: origRev.Config.AlertmanagerConfig.Route.Receiver,
+	}
+
+	t.Run("validates name", func(t *testing.T) {
+		testCases := []struct {
+			name        string
+			routeName   string
+			expectErr   bool
+			errContains string
+		}{
+			// Empty / blank.
+			{name: "empty string", routeName: "", expectErr: true, errContains: "required"},
+			{name: "whitespace-only", routeName: "   ", expectErr: true, errContains: "required"},
+			// Length
+			{name: "too long", routeName: strings.Repeat("a", ualert.UIDMaxLength+1), expectErr: true, errContains: "cannot be longer"},
+			// Colon is rejected before DNS1123 check.
+			{name: "contains colon", routeName: "my:route", expectErr: true, errContains: ":"},
+			{name: "colon only", routeName: ":", expectErr: true, errContains: ":"},
+			// DNS1123 subdomain violations.
+			{name: "uppercase letter", routeName: "MyRoute", expectErr: true, errContains: "DNS subdomain"},
+			{name: "space in name", routeName: "my route", expectErr: true, errContains: "DNS subdomain"},
+			{name: "underscore", routeName: "my_route", expectErr: true, errContains: "DNS subdomain"},
+			{name: "leading hyphen", routeName: "-myroute", expectErr: true, errContains: "DNS subdomain"},
+			{name: "trailing hyphen", routeName: "myroute-", expectErr: true, errContains: "DNS subdomain"},
+			{name: "leading whitespace", routeName: "  myroute", expectErr: true, errContains: "DNS subdomain"},
+			{name: "trailing whitespace", routeName: "myroute  ", expectErr: true, errContains: "DNS subdomain"},
+			// Valid names.
+			{name: "simple lowercase", routeName: "myroute", expectErr: false},
+			{name: "with hyphens", routeName: "my-route-1", expectErr: false},
+			{name: "with dots", routeName: "my.route.name", expectErr: false},
+			{name: "max length (253 chars)", routeName: strings.Repeat("a", ualert.UIDMaxLength), expectErr: false},
+		}
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				_, err := testConfig().CreateManagedRoute(tc.routeName, subtree)
+				if tc.expectErr {
+					assert.ErrorIs(t, err, models.ErrRouteInvalidFormat)
+					if tc.errContains != "" {
+						assert.ErrorContains(t, err, tc.errContains)
+					}
+				} else {
+					assert.NoError(t, err)
+				}
+			})
+		}
+	})
+
+	t.Run("rejects reserved name", func(t *testing.T) {
+		_, err := testConfig().CreateManagedRoute(models.DefaultRoutingTreeName, subtree)
+		assert.ErrorContains(t, err, "reserved")
+		assert.ErrorContains(t, err, models.DefaultRoutingTreeName)
+		assert.ErrorIs(t, err, models.ErrRouteExists)
+	})
+
+	t.Run("rejects duplicate name", func(t *testing.T) {
+		rev := testConfig()
+		_, err := rev.CreateManagedRoute(getAnyKey(t, rev.Config.ManagedRoutes), subtree)
+		assert.ErrorIs(t, err, models.ErrRouteExists)
+	})
+
+	t.Run("rejects invalid route", func(t *testing.T) {
+		_, err := testConfig().CreateManagedRoute("test", v1.Route{})
+		assert.ErrorIs(t, err, models.ErrRouteInvalidFormat)
+	})
+
+	t.Run("creates valid managed route", func(t *testing.T) {
+		rev := testConfig()
+		name := "test"
+		mr, err := rev.CreateManagedRoute(name, subtree)
+		assert.NoError(t, err)
+		assert.NotNil(t, mr)
+		assert.Equal(t, name, mr.GetUID())
+
+		assert.Contains(t, rev.Config.ManagedRoutes, name)
+		assert.Equal(t, &subtree, rev.Config.ManagedRoutes[name])
+	})
+}
+
+func TestConfigRevision_UpdateNamedRoute(t *testing.T) {
+	origRev := testConfig()
+	subtree := v1.Route{
+		Receiver: origRev.Config.AlertmanagerConfig.Route.Receiver,
+	}
+
+	t.Run("rejects empty name", func(t *testing.T) {
+		_, err := testConfig().UpdateNamedRoute("", subtree)
+		assert.ErrorContains(t, err, "name")
+		assert.ErrorContains(t, err, "required")
+	})
+
+	t.Run("reserved name updates default", func(t *testing.T) {
+		rev := testConfig()
+		_, err := rev.UpdateNamedRoute(models.DefaultRoutingTreeName, subtree)
+		assert.NoError(t, err)
+		assert.Equal(t, &subtree, rev.Config.AlertmanagerConfig.Route)
+	})
+
+	t.Run("rejects invalid route", func(t *testing.T) {
+		rev := testConfig()
+		_, err := rev.UpdateNamedRoute(getAnyKey(t, rev.Config.ManagedRoutes), v1.Route{})
+		assert.ErrorIs(t, err, models.ErrRouteInvalidFormat)
+	})
+
+	t.Run("updates valid managed route", func(t *testing.T) {
+		rev := testConfig()
+		name := getAnyKey(t, rev.Config.ManagedRoutes)
+		mr, err := rev.UpdateNamedRoute(name, subtree)
+		assert.NoError(t, err)
+		assert.NotNil(t, mr)
+		assert.Equal(t, name, mr.GetUID())
+
+		assert.Contains(t, rev.Config.ManagedRoutes, name)
+		assert.Equal(t, &subtree, rev.Config.ManagedRoutes[name])
+	})
+}
+
+func TestConfigRevision_DeleteManagedRoute(t *testing.T) {
+	rev := testConfig()
+	for name := range policy_exports.Config().ManagedRoutes {
+		rev.DeleteManagedRoute(name)
+
+		assert.NotContains(t, rev.Config.ManagedRoutes, name)
+		assert.Nil(t, rev.GetManagedRoute(name))
+	}
+}
+
+func TestConfigRevision_ResetUserDefinedRoute(t *testing.T) {
+	rev := testConfig()
+	original := rev.Config.AlertmanagerConfig.Route
+	newRoute := v1.Route{
+		Receiver: rev.Config.AlertmanagerConfig.Route.Receiver,
+	}
+	defaultCfg := v1.AMConfigV1{
+		AlertmanagerConfig: v1.PostableApiAlertingConfig{
+			Config: v1.Config{
+				Route: &newRoute,
+			},
+		},
+	}
+	mr, err := rev.ResetUserDefinedRoute(&defaultCfg)
+	assert.NoError(t, err)
+	assert.NotNil(t, mr)
+	assert.Equal(t, models.DefaultRoutingTreeName, mr.GetUID())
+
+	assert.Equal(t, &newRoute, rev.Config.AlertmanagerConfig.Route)
+	assert.NotEqual(t, original, rev.Config.AlertmanagerConfig.Route)
+
+	// Now we try with a default config that has an invalid receiver.
+	// We don't fail the reset if the new default receiver exists in the default config,
+	// instead we create it as per the definition.
+	name := "deleted_default"
+	newRoute = v1.Route{
+		Receiver: name,
+	}
+	defaultCfg = v1.AMConfigV1{
+		AlertmanagerConfig: v1.PostableApiAlertingConfig{
+			Config: v1.Config{
+				Route: &v1.Route{
+					Receiver: name,
+				},
+			},
+		},
+		Receivers: v1.ReceiversFromSlice([]*v1.PostableApiReceiver{
+			{
+				Name: name,
+			},
+		}),
+	}
+	mr, err = rev.ResetUserDefinedRoute(&defaultCfg)
+	assert.NoError(t, err)
+	assert.NotNil(t, mr)
+	assert.Equal(t, models.DefaultRoutingTreeName, mr.GetUID())
+
+	assert.Equal(t, &newRoute, rev.Config.AlertmanagerConfig.Route)
+	assert.NotEqual(t, original, rev.Config.AlertmanagerConfig.Route)
+
+	assert.Contains(t, rev.GetReceiversNames(), name)
+}
+
+// The intention here isn't to be exhaustive; route validation is done at length elsewhere. Instead, we hit the main
+// sources of validation issues to ensure it's calling the correct code-paths.
+func TestConfigRevision_ValidateRoute(t *testing.T) {
+	t.Run("valid route passes validation", func(t *testing.T) {
+		rev := testConfig()
+		validRoute := v1.Route{
+			Receiver: rev.Config.AlertmanagerConfig.Route.Receiver,
+		}
+		err := rev.ValidateRoute(validRoute)
+		require.NoError(t, err)
+	})
+
+	t.Run("fails route structural validation", func(t *testing.T) {
+		rev := testConfig()
+
+		// Empty receiver is invalid for root.
+		invalid := v1.Route{
+			Receiver: "",
+		}
+
+		err := rev.ValidateRoute(invalid)
+		require.ErrorContains(t, err, "default receiver")
+	})
+
+	t.Run("fails when receiver does not exist", func(t *testing.T) {
+		rev := testConfig()
+
+		invalid := v1.Route{
+			Receiver: "missing-receiver",
+		}
+
+		err := rev.ValidateRoute(invalid)
+		require.ErrorContains(t, err, "missing-receiver")
+	})
+
+	t.Run("fails when mute time interval does not exist", func(t *testing.T) {
+		rev := testConfig()
+
+		invalid := v1.Route{
+			Receiver: rev.Config.AlertmanagerConfig.Route.Receiver,
+			Routes: []*v1.Route{
+				{
+					MuteTimeIntervals: []string{"missing-interval"},
+				},
+			},
+		}
+
+		err := rev.ValidateRoute(invalid)
+		require.ErrorContains(t, err, "missing-interval")
+	})
+
+	t.Run("fails when active time interval does not exist", func(t *testing.T) {
+		rev := testConfig()
+
+		invalid := v1.Route{
+			Receiver: rev.Config.AlertmanagerConfig.Route.Receiver,
+			Routes: []*v1.Route{
+				{
+					ActiveTimeIntervals: []string{"missing-interval"},
+				},
+			},
+		}
+
+		err := rev.ValidateRoute(invalid)
+		require.ErrorContains(t, err, "missing-interval")
+	})
+}
+
+func TestConfigRevision_TimeIntervalUsedByRoutes(t *testing.T) {
+	rev := &ConfigRevision{
+		Config: &v1.AMConfigV1{
+			AlertmanagerConfig: v1.PostableApiAlertingConfig{
+				Config: v1.Config{
+					Route: &v1.Route{
+						Routes: []*v1.Route{
+							{
+								MuteTimeIntervals:   []string{"root-mute"},
+								ActiveTimeIntervals: []string{"root-active"},
+							},
+						},
+					},
+				},
+			},
+			ManagedRoutes: map[string]*v1.Route{
+				"managed": {
+					Routes: []*v1.Route{
+						{
+							MuteTimeIntervals:   []string{"managed-mute"},
+							ActiveTimeIntervals: []string{"managed-active"},
+						},
+					},
+				},
+				"empty": {},
+			},
+		},
+	}
+
+	for _, name := range []string{"root-mute", "root-active", "managed-mute", "managed-active"} {
+		t.Run(fmt.Sprintf("returns true for %s", name), func(t *testing.T) {
+			assert.True(t, rev.TimeIntervalUsedByRoutes(name))
+		})
+	}
+
+	t.Run("returns false if not referenced by any route", func(t *testing.T) {
+		assert.False(t, rev.TimeIntervalUsedByRoutes("unused"))
+	})
+
+	t.Run("returns false if there is no root route", func(t *testing.T) {
+		rev := &ConfigRevision{Config: &v1.AMConfigV1{}}
+		assert.False(t, rev.TimeIntervalUsedByRoutes("unused"))
+	})
+}
+
+func testConfig() *ConfigRevision {
+	rev := &ConfigRevision{
+		Config: policy_exports.Config(),
+	}
+	return rev
+}
+
+func getAnyKey[T any](t *testing.T, m map[string]*T) string {
+	for k := range m {
+		return k
+	}
+	t.Error("map is empty")
+	return ""
+}

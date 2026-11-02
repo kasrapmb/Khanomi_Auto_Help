@@ -1,0 +1,6 @@
+{
+  "upstream_commit": "752e3462ff71a43a5c1fb62d00a482fa2dc0ee6a",
+  "method": "Every archived blob checked against git ls-tree object identity using Git blob SHA-1; symlinks checked as exact link targets",
+  "verified_blobs": 24113,
+  "mismatches": []
+}

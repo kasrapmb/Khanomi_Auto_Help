@@ -1,0 +1,11 @@
+apiVersion: 1
+providers:
+  - name: Dark interactive dashboards
+    orgId: 1
+    folder: Grafana Play Study
+    type: file
+    disableDeletion: false
+    allowUiUpdates: false
+    updateIntervalSeconds: 10
+    options:
+      path: /var/lib/grafana/dashboards

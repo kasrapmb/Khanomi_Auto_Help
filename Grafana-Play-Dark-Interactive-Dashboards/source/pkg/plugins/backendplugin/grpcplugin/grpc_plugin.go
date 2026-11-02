@@ -1,0 +1,325 @@
+package grpcplugin
+
+import (
+	"context"
+	"errors"
+	"sync"
+
+	"github.com/hashicorp/go-plugin"
+	"go.opentelemetry.io/otel/trace"
+
+	v3 "github.com/grafana/grafana-app-sdk/plugin/client/v3"
+	appgrpcplugin "github.com/grafana/grafana-app-sdk/plugin/grpcplugin"
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana/pkg/plugins"
+	"github.com/grafana/grafana/pkg/plugins/backendplugin"
+	localv3 "github.com/grafana/grafana/pkg/plugins/backendplugin/v3"
+	"github.com/grafana/grafana/pkg/plugins/log"
+)
+
+type grpcPlugin struct {
+	descriptor     PluginDescriptor
+	clientFactory  func() (*plugin.Client, string, error)
+	client         *plugin.Client
+	pluginClient   *ClientV2
+	clientV3       v3.Client
+	logger         log.Logger
+	mutex          sync.RWMutex
+	decommissioned bool
+	state          pluginState
+
+	// accessPolicyToken is the local access policy token passed to the
+	// current process, revoked when the process stops or is replaced.
+	accessPolicyToken string
+}
+
+type pluginState int
+
+const (
+	pluginStateNotStarted pluginState = iota
+	pluginStateStartInit
+	pluginStateStartSuccess
+	pluginStateStartFail
+	pluginStateStopped
+)
+
+// newPlugin allocates and returns a new gRPC (external) backendplugin.Plugin.
+func newPlugin(descriptor PluginDescriptor) backendplugin.PluginFactoryFunc {
+	return func(pluginID string, logger log.Logger, tracer trace.Tracer, env func() []string) (backendplugin.Plugin, error) {
+		return newGrpcPlugin(descriptor, logger, tracer, env)
+	}
+}
+
+func newGrpcPlugin(descriptor PluginDescriptor, logger log.Logger, tracer trace.Tracer, env func() []string) (*grpcPlugin, error) {
+	return &grpcPlugin{
+		descriptor: descriptor,
+		logger:     logger,
+		clientFactory: func() (*plugin.Client, string, error) {
+			processEnv := env()
+			accessPolicyToken := localv3.LocalAccessPolicyTokenFromEnv(processEnv)
+			clientConfig, err := newClientConfig(descriptor, processEnv, logger, tracer)
+			if err != nil {
+				// Start revokes the token of a failed start.
+				return nil, accessPolicyToken, err
+			}
+			return plugin.NewClient(clientConfig), accessPolicyToken, nil
+		},
+		state: pluginStateNotStarted,
+	}, nil
+}
+
+func (p *grpcPlugin) PluginID() string {
+	return p.descriptor.pluginID
+}
+
+func (p *grpcPlugin) Logger() log.Logger {
+	return p.logger
+}
+
+func (p *grpcPlugin) Start(_ context.Context) error {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	p.state = pluginStateStartInit
+	// A failed start must not leave a half-started process running, keep its
+	// client, or keep a working access policy token. go-plugin never marks a
+	// client exited when the process fails to launch, so with the client kept,
+	// Exited would stay false and the plugin would never be restarted.
+	defer func() {
+		if p.state == pluginStateStartFail {
+			if p.client != nil {
+				p.client.Kill()
+			}
+			p.client = nil
+			p.pluginClient = nil
+			p.clientV3 = nil
+			p.revokeAccessPolicyToken()
+		}
+	}()
+
+	// A restart replaces the process, so the previous one's token must stop working.
+	p.revokeAccessPolicyToken()
+
+	var err error
+	p.client, p.accessPolicyToken, err = p.clientFactory()
+	if err != nil {
+		p.state = pluginStateStartFail
+		return err
+	}
+	rpcClient, err := p.client.Client()
+	if err != nil {
+		p.state = pluginStateStartFail
+		return err
+	}
+
+	if p.client.NegotiatedVersion() < 2 {
+		p.state = pluginStateStartFail
+		return errors.New("plugin protocol version not supported")
+	}
+	p.pluginClient, err = newClientV2(rpcClient)
+	if err != nil {
+		p.state = pluginStateStartFail
+		return err
+	}
+
+	if p.pluginClient == nil {
+		p.state = pluginStateStartFail
+		return errors.New("no compatible plugin implementation found")
+	}
+
+	p.clientV3 = loadClientV3(rpcClient)
+
+	p.state = pluginStateStartSuccess
+	return nil
+}
+
+// loadClientV3 returns the plugin's v3 transport client. Consumers add caller
+// authentication with v3.WithAuthentication.
+func loadClientV3(rpcClient plugin.ClientProtocol) v3.Client {
+	client, err := appgrpcplugin.NewClientV3(rpcClient, appgrpcplugin.ClientV3Options{})
+	if err != nil {
+		// Plugins that predate v3 do not dispense these services, which is the
+		// common case for now, so a failure here is not worth surfacing.
+		return nil
+	}
+	return client
+}
+
+// revokeAccessPolicyToken revokes the access policy token passed to the current
+// process. Callers hold p.mutex.
+func (p *grpcPlugin) revokeAccessPolicyToken() {
+	localv3.RevokeLocalAccessPolicyToken(p.accessPolicyToken)
+	p.accessPolicyToken = ""
+}
+
+func (p *grpcPlugin) Stop(_ context.Context) error {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	if p.client != nil {
+		p.client.Kill()
+	}
+	// The process's access policy token must not outlive it.
+	p.revokeAccessPolicyToken()
+	p.state = pluginStateStopped
+	return nil
+}
+
+func (p *grpcPlugin) IsManaged() bool {
+	return p.descriptor.managed
+}
+
+func (p *grpcPlugin) Exited() bool {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	if p.client != nil {
+		return p.client.Exited()
+	}
+	return true
+}
+
+func (p *grpcPlugin) Decommission() error {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	p.decommissioned = true
+
+	return nil
+}
+
+func (p *grpcPlugin) IsDecommissioned() bool {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	return p.decommissioned
+}
+
+func (p *grpcPlugin) Target() backendplugin.Target {
+	return backendplugin.TargetLocal
+}
+
+// ClientV3 implements [backendplugin.PluginV3].
+func (p *grpcPlugin) ClientV3(ctx context.Context) (v3.Client, bool) {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	if p.client != nil && !p.client.Exited() && p.clientV3 != nil {
+		return p.clientV3, true
+	}
+	p.logClientState(ctx)
+	return nil, false
+}
+
+func (p *grpcPlugin) getPluginClient(ctx context.Context) (*ClientV2, bool) {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	if p.client != nil && !p.client.Exited() && p.pluginClient != nil {
+		return p.pluginClient, true
+	}
+	p.logClientState(ctx)
+	return nil, false
+}
+
+func (p *grpcPlugin) logClientState(ctx context.Context) {
+	logger := p.Logger().FromContext(ctx)
+	switch p.state {
+	case pluginStateStartSuccess:
+		logger.Debug("Plugin client started, but does not have a client")
+	case pluginStateNotStarted:
+		logger.Debug("Plugin client has not been started yet")
+	case pluginStateStartInit:
+		logger.Debug("Plugin client is starting")
+	case pluginStateStartFail:
+		logger.Debug("Plugin client failed to start")
+	case pluginStateStopped:
+		logger.Debug("Plugin client has stopped")
+	}
+}
+
+func (p *grpcPlugin) CollectMetrics(ctx context.Context, req *backend.CollectMetricsRequest) (*backend.CollectMetricsResult, error) {
+	pc, ok := p.getPluginClient(ctx)
+	if !ok {
+		return nil, plugins.ErrPluginUnavailable
+	}
+	return pc.CollectMetrics(ctx, req)
+}
+
+func (p *grpcPlugin) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
+	pc, ok := p.getPluginClient(ctx)
+	if !ok {
+		return nil, plugins.ErrPluginUnavailable
+	}
+	return pc.CheckHealth(ctx, req)
+}
+
+func (p *grpcPlugin) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
+	pc, ok := p.getPluginClient(ctx)
+	if !ok {
+		return nil, plugins.ErrPluginUnavailable
+	}
+
+	return pc.QueryData(ctx, req)
+}
+
+func (p *grpcPlugin) QueryChunkedData(ctx context.Context, req *backend.QueryChunkedDataRequest, w backend.ChunkedDataWriter) error {
+	pc, ok := p.getPluginClient(ctx)
+	if !ok {
+		return plugins.ErrPluginUnavailable
+	}
+
+	return pc.QueryChunkedData(ctx, req, w)
+}
+
+func (p *grpcPlugin) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
+	pc, ok := p.getPluginClient(ctx)
+	if !ok {
+		return plugins.ErrPluginUnavailable
+	}
+	return pc.CallResource(ctx, req, sender)
+}
+
+func (p *grpcPlugin) SubscribeStream(ctx context.Context, request *backend.SubscribeStreamRequest) (*backend.SubscribeStreamResponse, error) {
+	pc, ok := p.getPluginClient(ctx)
+	if !ok {
+		return nil, plugins.ErrPluginUnavailable
+	}
+	return pc.SubscribeStream(ctx, request)
+}
+
+func (p *grpcPlugin) PublishStream(ctx context.Context, request *backend.PublishStreamRequest) (*backend.PublishStreamResponse, error) {
+	pc, ok := p.getPluginClient(ctx)
+	if !ok {
+		return nil, plugins.ErrPluginUnavailable
+	}
+	return pc.PublishStream(ctx, request)
+}
+
+func (p *grpcPlugin) RunStream(ctx context.Context, req *backend.RunStreamRequest, sender *backend.StreamSender) error {
+	pc, ok := p.getPluginClient(ctx)
+	if !ok {
+		return plugins.ErrPluginUnavailable
+	}
+	return pc.RunStream(ctx, req, sender)
+}
+
+func (p *grpcPlugin) ValidateAdmission(ctx context.Context, request *backend.AdmissionRequest) (*backend.ValidationResponse, error) {
+	pc, ok := p.getPluginClient(ctx)
+	if !ok {
+		return nil, plugins.ErrPluginUnavailable
+	}
+	return pc.ValidateAdmission(ctx, request)
+}
+
+func (p *grpcPlugin) MutateAdmission(ctx context.Context, request *backend.AdmissionRequest) (*backend.MutationResponse, error) {
+	pc, ok := p.getPluginClient(ctx)
+	if !ok {
+		return nil, plugins.ErrPluginUnavailable
+	}
+	return pc.MutateAdmission(ctx, request)
+}
+
+func (p *grpcPlugin) ConvertObjects(ctx context.Context, request *backend.ConversionRequest) (*backend.ConversionResponse, error) {
+	pc, ok := p.getPluginClient(ctx)
+	if !ok {
+		return nil, plugins.ErrPluginUnavailable
+	}
+	return pc.ConvertObjects(ctx, request)
+}

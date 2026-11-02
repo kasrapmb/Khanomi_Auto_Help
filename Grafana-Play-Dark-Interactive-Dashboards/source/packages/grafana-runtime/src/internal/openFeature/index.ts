@@ -1,0 +1,112 @@
+import { LocalStorageProvider } from '@openfeature/localstorage-provider';
+import { OFREPWebProvider } from '@openfeature/ofrep-web-provider';
+import {
+  OpenFeature,
+  ProviderEvents,
+  NOOP_PROVIDER,
+  type EventDetails,
+  MultiProvider,
+  type Provider,
+} from '@openfeature/react-sdk';
+
+import { config } from '../../config';
+import { logError } from '../../utils/logging';
+
+// Ensure the module augmentation is pulled in
+import './openfeature-types.gen.d.ts';
+
+function checkDefaultProvider(event?: EventDetails) {
+  if (event?.domain) {
+    return;
+  }
+
+  // Warn plugin developers if we've detected OpenFeature's default provider has been changed,
+  //  as plugins should always be using a domain when setting a provider to avoid conflicts.
+  if (OpenFeature.getProvider() !== NOOP_PROVIDER) {
+    const err = new Error(
+      'OpenFeature default domain provider has been unexpectedly changed. This may be caused by a plugin that is incorrectly using the default domain.',
+      { cause: OpenFeature.getProvider() }
+    );
+    console.error(err);
+    logError(err);
+  }
+}
+
+// The domain creates the unique instance of the OpenFeature client for Grafana core,
+// with its own evaluation context and provider.
+// Plugins should not use this client or domain, and instead create their own client
+// with a different domain to avoid conflicts.
+//
+// If changing this, you MUST also update the same constant in packages/grafana-test-utils/src/utilities/featureFlags.ts
+// to ensure tests work correctly.
+const GRAFANA_CORE_OPEN_FEATURE_DOMAIN = 'internal-grafana-core';
+const GRAFANA_OPEN_FEATURE_LOCALSTORAGE_PREFIX = 'grafana.openfeature.';
+
+// Allow direct access to a singleton localStorage provider,
+//  to allow the feature control developer UI to override flags via the provider
+let localStorageProvider: LocalStorageProvider;
+export function getLocalStorageProvider() {
+  return (localStorageProvider ??= new LocalStorageProvider({
+    prefix: GRAFANA_OPEN_FEATURE_LOCALSTORAGE_PREFIX,
+  }));
+}
+
+// Allow direct access to a singleton OFREP provider,
+//  to allow the feature control developer UI to discover flags from the provider
+let ofrepWebProvider: OFREPWebProvider;
+export function getOFREPWebProvider() {
+  return (ofrepWebProvider ??= new OFREPWebProvider({
+    baseUrl: `${config.appSubUrl || ''}`,
+    disableVisibilityRefresh: true, // Do not refresh
+    cacheMode: 'disabled', // Do not write to localStorage
+    timeoutMs: 5_000,
+  }));
+}
+
+export async function initOpenFeature() {
+  OpenFeature.addHandler(ProviderEvents.Ready, checkDefaultProvider);
+  OpenFeature.addHandler(ProviderEvents.Error, checkDefaultProvider);
+
+  const lsProvider = getLocalStorageProvider();
+  const ofProvider = getOFREPWebProvider();
+  let meticulousProvider: Provider | undefined;
+
+  if (window.Meticulous != null) {
+    try {
+      const { MeticulousProvider, createMeticulousReportingHook, isMeticulousReportingHook } = await import(
+        /* webpackChunkName: "meticulous-openfeature" */ './meticulous'
+      );
+      meticulousProvider = new MeticulousProvider();
+      if (!OpenFeature.getHooks().some(isMeticulousReportingHook)) {
+        // Report the final value after all providers resolve, including caller defaults.
+        OpenFeature.addHooks(createMeticulousReportingHook(GRAFANA_CORE_OPEN_FEATURE_DOMAIN));
+      }
+    } catch (error) {
+      console.error('Failed to load Meticulous OpenFeature integration', error);
+    }
+  }
+
+  await OpenFeature.setProviderAndWait(
+    GRAFANA_CORE_OPEN_FEATURE_DOMAIN,
+    new MultiProvider([
+      // Grafana core only: plugins must not copy the Meticulous provider because it is wired to the private core domain.
+      ...(meticulousProvider ? [{ provider: meticulousProvider }] : []),
+      { provider: lsProvider },
+      { provider: ofProvider },
+    ]),
+    {
+      targetingKey: config.namespace,
+      ...config.openFeatureContext,
+    }
+  );
+}
+
+/**
+ * Get the OpenFeature client for Grafana core.
+ * Prefer to instead use the React hooks for evaluating feature flags instead as they remain up to date with the latest flag values.
+ * If you must use this client directly, do not store the evaluation result for later - always call `getFeatureFlagClient().getFooValue()` just
+ * in time when you use it to ensure you get the latest value.
+ */
+export function getFeatureFlagClient() {
+  return OpenFeature.getClient(GRAFANA_CORE_OPEN_FEATURE_DOMAIN);
+}

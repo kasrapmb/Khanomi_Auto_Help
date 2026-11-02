@@ -1,0 +1,45 @@
+package recordingrule
+
+import (
+	"context"
+
+	"github.com/grafana/grafana-app-sdk/app"
+	"github.com/grafana/grafana-app-sdk/simple"
+	v1 "github.com/grafana/grafana/apps/alerting/rules/pkg/apis/alerting/v1beta1"
+	"github.com/grafana/grafana/apps/alerting/rules/pkg/app/config"
+	"github.com/grafana/grafana/apps/alerting/rules/pkg/app/convert"
+)
+
+func NewMutator(cfg config.RuntimeConfig) *simple.Mutator {
+	return &simple.Mutator{
+		MutateFunc: func(ctx context.Context, req *app.AdmissionRequest) (*app.MutatingResponse, error) {
+			r, err := convert.Hub[*v1.RecordingRule](req.Object)
+			if err != nil {
+				return nil, err
+			}
+			if r == nil {
+				return nil, nil
+			}
+
+			folderUID := ""
+			if r.Annotations != nil {
+				folderUID = r.Annotations[v1.FolderAnnotationKey]
+			}
+
+			if folderUID != "" {
+				if r.Labels == nil {
+					r.Labels = make(map[string]string)
+				}
+				r.Labels[v1.FolderLabelKey] = folderUID
+			}
+			if err := r.Spec.ClampDurations(); err != nil {
+				return nil, err
+			}
+			out, err := convert.Like(r, req.Object)
+			if err != nil {
+				return nil, err
+			}
+			return &app.MutatingResponse{UpdatedObject: out}, nil
+		},
+	}
+}
