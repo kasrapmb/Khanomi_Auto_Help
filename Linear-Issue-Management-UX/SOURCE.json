@@ -1,0 +1,27 @@
+{
+  "reference": "https://linear.app/",
+  "artifact_type": "Independent functional UX reconstruction",
+  "original_product_source_included": false,
+  "original_product_source_recovered": false,
+  "live_reference_observation": {
+    "request": "HTTPS GET https://linear.app/",
+    "http_status": 403,
+    "browser_session_recorded": false,
+    "visual_parity_verified": false
+  },
+  "implementation": {
+    "author": "kasrapmb",
+    "frontend": "React 18 / Vite 6 / lucide-react",
+    "storage": "Versioned localStorage, one browser profile",
+    "backend": null,
+    "seed_data": "16 fictional issues; fictitious people and projects",
+    "remote_linear_connection": false
+  },
+  "skill": {
+    "repository": "https://github.com/kasrapmb/REA_skills_Codex",
+    "commit": "e7c312d45da8ceea3864ed4afc8fbfc627dac53f",
+    "name": "reverse-engineer-anything",
+    "usage": "Read source-versus-runtime routing and evidence boundaries; REA MCP is unavailable in this session. No REA Evidence IDs or live capture claimed."
+  },
+  "license": "MIT for this independently authored implementation; dependencies retain their respective licenses"
+}
