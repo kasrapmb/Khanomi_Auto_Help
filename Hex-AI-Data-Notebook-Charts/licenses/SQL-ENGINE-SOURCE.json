@@ -1,0 +1,14 @@
+{
+  "package": "sql.js",
+  "version": "1.15.2",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/sql-js/sql.js.git"
+  },
+  "license": "MIT",
+  "package_tarball": "https://registry.npmjs.org/sql.js/-/sql.js-1.15.2.tgz",
+  "package_integrity": "sha512-ZmMYFsZPZWDKIJUh3A5rdnpRV3hB/r7AijwAzSzLnfv/9CSx4obUmDtA8brAjWJWjGtUVh43nIEJ+6nl6HuOUg==",
+  "wasm_file": "node_modules/sql.js/dist/sql-wasm.wasm",
+  "wasm_sha256": "0dfeecda2070b36da0cd4f6afa250af9453de528a983770f85b13d5d6b667572",
+  "modified": false
+}

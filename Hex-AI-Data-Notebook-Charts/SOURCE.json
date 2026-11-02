@@ -1,0 +1,51 @@
+{
+  "reference": "https://hex.tech/",
+  "artifact_type": "Independent SQL notebook, chart and local query-helper UX reconstruction",
+  "original_product_source_included": false,
+  "original_product_source_recovered": false,
+  "live_reference_observation": {
+    "request": "HTTPS GET https://hex.tech/",
+    "http_status": 403,
+    "browser_recording": false,
+    "visual_parity_verified": false
+  },
+  "implementation": {
+    "author": "kasrapmb",
+    "frontend": "React 18 / Vite 6 / lucide-react / SVG",
+    "sql_engine": "sql.js@1.15.2 (SQLite/WASM) in a fresh module Worker per execution",
+    "backend": null,
+    "dataset": "240 deterministic fictional orders, May\u2013October 2026",
+    "storage": "Draft SQL, plain-text note, region and chart type in origin-scoped localStorage",
+    "result_persistence": false,
+    "external_warehouse_connection": false,
+    "external_ai_model": false
+  },
+  "helper": {
+    "mode": "Explicitly disclosed keyword/template-based local SQL helper",
+    "supported": [
+      "monthly revenue",
+      "revenue by region",
+      "category performance",
+      "recent orders"
+    ],
+    "execution": "Suggestions require an explicit run before a data-derived response is shown",
+    "unsupported": "No generated answer; lists supported templates"
+  },
+  "limits": {
+    "query": "One read-only SELECT statement; no WITH/DDL/DML/PRAGMA commands",
+    "query_length_characters": 10000,
+    "result_rows": 500,
+    "plotted_rows": 40,
+    "worker_timeout_ms": 8000,
+    "query_cancel": true,
+    "result_lineage": "Last successful result retained and marked when draft/parameters differ"
+  },
+  "engine_provenance": "licenses/SQL-ENGINE-SOURCE.json",
+  "skill": {
+    "repository": "https://github.com/kasrapmb/REA_skills_Codex",
+    "commit": "e7c312d45da8ceea3864ed4afc8fbfc627dac53f",
+    "name": "reverse-engineer-anything",
+    "usage": "Evidence boundaries and independent implementation; no connected REA MCP, original-source recovery or REA Evidence IDs claimed."
+  },
+  "license": "MIT for independently authored code; SQL.js license and package/WASM provenance preserved in licenses/"
+}
