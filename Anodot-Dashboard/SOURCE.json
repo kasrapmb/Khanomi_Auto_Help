@@ -1,0 +1,10 @@
+{
+  "target": "https://www.anodot.com/",
+  "type": "independent-workflow-reconstruction",
+  "original_source_recovered": false,
+  "original_ui_observed": false,
+  "data": "deterministic synthetic demo",
+  "skill": "https://github.com/kasrapmb/REA_skills_Codex/tree/main/REA-Skills/reverse-engineer-anything",
+  "rea_analysis_performed": false,
+  "limitations": ["Proxy CONNECT denied; no original product capture", "REA MCP absent; CLI runtime requirement unmet", "Original technology stack and algorithms unknown", "Temporal association is not root-cause proof"]
+}

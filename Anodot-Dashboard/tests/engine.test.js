@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {baseline,detect,incidents,related,csv,series,metrics} from '../src/engine.js';
+test('baseline computes population statistics',()=>{assert.deepEqual(baseline([2,4,6]),{mean:4,deviation:Math.sqrt(8/3)});assert.throws(()=>baseline([1]));});
+test('flat and modest periodic signals do not trigger',()=>{assert.equal(detect(Array(72).fill(100)).length,0);assert.equal(detect(Array.from({length:72},(_,i)=>100+Math.sin(i)*2)).length,0);});
+test('detects known drop using only preceding samples',()=>{const data=[...Array(24).fill(100),50];const [event]=detect(data);assert.equal(event.index,24);assert.equal(event.expected,100);assert.equal(event.delta,-50);assert.equal(detect([...data,999])[0].expected,100);});
+test('sensitivity changes threshold',()=>{const data=[...Array(24).fill(100),104];assert.equal(detect(data,2).length,1);assert.equal(detect(data,4).length,0);});
+test('all six seeded events are detected at correct onsets',()=>{const events=incidents();assert.equal(events.length,6);for(const m of metrics){assert.equal(series(m).length,72);assert.equal(events.find(e=>e.id===m.id).index,m.event);}});
+test('related signals exclude self and isolated later event',()=>{const all=incidents(),r=related(all.find(e=>e.id==='revenue'),all);assert.equal(r.length,4);assert.ok(r.every(e=>e.id!=='revenue'&&e.id!=='spend'));assert.equal(related(all.find(e=>e.id==='spend'),all).length,0);});
+test('CSV escapes quotes and includes six rows',()=>{assert.equal(csv(incidents()).split('\n').length,7);assert.match(csv([{name:'A,"B',dimension:'x',severity:'Warning',actual:1,expected:2,delta:-50}]),/"A,""B"/);});
