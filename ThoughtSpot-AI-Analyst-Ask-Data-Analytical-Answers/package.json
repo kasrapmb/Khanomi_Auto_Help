@@ -1,0 +1,12 @@
+{
+  "name": "thoughtspot-inspired-ai-analyst",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Independent ThoughtSpot Spotter-inspired data Q&A interface, local deterministic analytics, charts and CSV",
+  "scripts": {
+    "test": "node --test",
+    "dev": "python3 -m http.server 8000"
+  },
+  "license": "MIT"
+}
