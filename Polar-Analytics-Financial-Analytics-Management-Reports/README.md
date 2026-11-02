@@ -1,21 +1,21 @@
-# Polar Analytics-inspired Financial Analytics & Executive Reports
+# Polar Analytics — Financial Analytics & Executive Reporting (v2)
 
-Independent, original-source recreation of the **financial analytics and management reporting** experience publicly described by [Polar Analytics](https://www.polaranalytics.com/). This is **not** Polar's proprietary application, source code, financial data, brand identity, or official API.
+**Independent recreation of public Polar Analytics dashboard concepts.** All source in this folder is independently authored for an educational demonstration. This is NOT a copy of Polar's proprietary JavaScript or backend, and has no Polar affiliation or authenticated service access.
 
-## Implemented
-- Responsive finance dashboard with six KPI cards
-- Net revenue, contribution profit, modeled net profit, margin, ad spend, AOV
-- Interactive period filters (7 / 30 / 90 / 365 days) and channel selector
-- Revenue/profit time-series chart
-- Reconciled financial profit bridge from gross sales to net profit
-- Channel profitability table
-- Executive highlights based on deterministic calculations
-- Adjustable extra operating-cost scenario (0–20% of net sales)
-- Export channel-level finance report to CSV
-- Deterministic 365-day synthetic demo data, no external accounts
+This revision **replaces the previous Stage 3 implementation in the same GitHub directory**, rather than creating a duplicate.
 
-## Run
-No dependencies or build step. Use a local HTTP server for ES modules:
+## What works
+
+- **Financial Overview:** six KPI cards (net revenue, contribution profit, modeled net profit, margin, advertising expense and AOV), revenue mini-trend, interactive sales/net-profit time-series charts.
+- **Executive Reports:** interactive custom table/chart builder with selectable metrics (gross sales, net sales, modeled profit, contribution, spend, orders, margin, AOV, COGS), grouping by channel/week/month, and top-row limits.
+- **Profit & Loss:** itemized simplified P&L from gross revenue through discounts, refunds, cost of goods, fees, shipping, ad spend and overhead to modeled profit.
+- **Global filters:** current 7/30/90/365-day periods and an optional marketing-channel filter. Prior-period comparisons use the immediately preceding period of equal calendar-day length.
+- **Scenario analysis:** adjust incremental operating expense from 0 to 20 percent of net revenue; P&L, KPI cards and reports recalculate automatically.
+- **Export:** download a CSV of currently selected financial groupings.
+- **Executive highlights:** deterministic observations based on current financial totals, not AI-generated or causal claims.
+- **Demo data:** 365 locally generated daily synthetic records; no server or credential integration.
+
+## Run from the cloned repository
 
 ```bash
 git clone https://github.com/kasrapmb/Khanomi_Auto_Help.git
@@ -23,39 +23,49 @@ cd Khanomi_Auto_Help/Polar-Analytics-Financial-Analytics-Management-Reports
 python3 -m http.server 8000
 ```
 
-Open http://localhost:8000.
+Open **http://localhost:8000**. This is a static HTML/CSS/ES-module project and has no runtime npm dependencies.
 
-## Tests
-Requires Node.js 20+:
+## Automated tests
+
+Node.js 20+:
 
 ```bash
 npm test
 ```
 
-## Model definitions
-- Net revenue = gross sales − discounts − refunds
-- Gross profit = net revenue − cost of goods
-- Contribution profit = gross profit − shipping − payment fees − ad spend
-- Modeled net profit = contribution profit − overhead − additional scenario costs
-- Margin = net profit / net revenue
-- AOV = net revenue / order count
-- MER = net revenue / ad spend (computed by finance engine; not currently displayed)
+The repository includes 9 Node tests in `tests/finance.test.mjs`. During authoring the revised finance functions and UI were also smoke-checked in JavaScript with 12 successful checks. Those checks are **not** a substitute for a full browser-based test or a confirmed `npm test` run on the committed tree.
 
-These simplified figures are **not** audited accounting profit or Polar's official contribution-margin methodology. They exclude tax, payment timing, multi-currency consolidation and accounting reconciliation. Period-over-period comparisons use adjacent equal-length date ranges.
+## Financial formulas
+
+```text
+Net revenue = Gross sales - Discounts - Refunds
+Gross profit = Net revenue - Cost of goods (COGS)
+Contribution profit = Gross profit - Shipping - Payment fees - Advertising
+Modeled net profit = Contribution profit - Overhead - Scenario additional costs
+Profit margin = Modeled net profit / Net revenue
+AOV = Net revenue / Order count
+```
+
+Financial model is simplified: no taxes, FX translation, cash timing, inventory accounting, reconciliation or attribution validation. Demo numbers are **not** business decisions or audited financial statements.
 
 ## Files
-- `index.html` — entry point
-- `styles.css` — responsive layout
-- `src/app.js` — dashboard interactions, SVG charts, filters, CSV export
-- `src/finance.js` — demo data and financial model
-- `tests/finance.test.mjs` — financial reconciliation and behavior tests
-- `REA_METHOD.md` — evidence and limitations
 
-## Source references
-- https://www.polaranalytics.com/features/custom-report
-- https://www.polaranalytics.com/post/ecommerce-analytics-without-a-data-team-is-it-possible-in-2026
-- https://www.polaranalytics.com/post/shopify-reports-explained-sales-inventory-and-pos-data-in-one-place
-- https://github.com/zia62381-crypto/rea_codex/tree/main/REA_skills_Codex-main/REA-Skills/reverse-engineer-anything
+| File | Purpose |
+| --- | --- |
+| `index.html` | Static page entry |
+| `styles.css` | Responsive dashboard and report builder |
+| `src/app.js` | Navigation, KPI cards, charts, filters, scenario and CSV controls |
+| `src/finance.js` | Synthetic data, chronological periods, aggregations and exports |
+| `tests/finance.test.mjs` | Data, reconciliation, period, grouping, scenario and CSV tests |
+| `REA_METHOD.md` | Skill evidence and investigative boundaries |
+| `package.json` | npm test entry point |
 
-## Verification
-All source files have been committed to GitHub. Automated tests are supplied but a live browser execution was not completed in this session.
+## References
+
+- [Polar — Understanding Dashboards](https://support.polaranalytics.com/articles/2935697766-understanding-dashboards)
+- [Polar — Understanding Custom Tables & Charts](https://support.polaranalytics.com/articles/8011212834-understanding-custom-tables-charts)
+- [Polar — Custom metrics](https://support.polaranalytics.com/articles/2460261789-understanding-custom-metrics)
+- [Polar — Exporting data](https://support.polaranalytics.com/articles/2421837954-exporting-data-in-polar)
+- [REA skill repository](https://github.com/zia62381-crypto/rea_codex/tree/main/REA_skills_Codex-main/REA-Skills/reverse-engineer-anything)
+
+See `REA_METHOD.md` for exact claims and limitations.
