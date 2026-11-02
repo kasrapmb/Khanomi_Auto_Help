@@ -51,7 +51,7 @@ export function insights(current,previous,channelGroups){
  else out.push({title:"Channel risk",value:"No profitable channel",detail:"No channel has positive modeled profit in this selection."});
  return out;
 }
-const safeCSV=v=>{let s=String(v??"");if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'};
+const safeCSV=v=>{let s=String(v??"");if(typeof v==="string"&&/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'};
 export function csvReport(groups,fields=["name","gross","net","cogs","ads","overhead","extra","profit","margin","orders"]){
  const allowed=["name",...required,"net","grossProfit","contribution","extra","profit","margin","aov","mer"];
  if(!fields.every(f=>allowed.includes(f)))throw Error("Unsupported report export field");
