@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Independent ThoughtSpot-inspired conversational data analytics demo">
+<title>InsightLab • Ask your data</title>
+<link rel="stylesheet" href="./styles.css">
+</head><body>
+<div class="app">
+ <aside class="sidebar">
+  <a class="brand" href="./"><span class="brand-icon">T.</span><span>InsightLab <small>ANALYTICS WORKSPACE</small></span></a>
+  <div class="sidebar-section"><button class="new-chat" id="new-chat"><span>＋</span> New analysis <span class="kbd">⌘ K</span></button></div>
+  <div class="side-heading">EXPLORE</div>
+  <nav class="navigation" aria-label="Main"><div class="nav-item selected"><span class="nav-glyph">✦</span> AI Analyst <span class="tiny-tag">BETA</span></div><div class="nav-item muted"><span class="nav-glyph">▣</span> Liveboards <span class="soon">Soon</span></div><div class="nav-item muted"><span class="nav-glyph">▤</span> Data models <span class="soon">Soon</span></div></nav>
+  <div class="side-heading">YOUR DATA</div>
+  <div class="data-card"><div class="data-card-top"><span class="data-icon">▦</span><div><strong id="dataset-title">Retail Sales · Demo</strong><small id="dataset-status">Loading</small></div></div><button id="upload-trigger" class="import-btn">↑ Import CSV</button><input id="file" type="file" accept=".csv,text/csv" hidden><button class="text-link" id="demo-reset">Reset to sample data</button></div>
+  <div class="sidebar-bottom"><button id="saved-toggle" class="saved-link">☆ Saved answers</button><div class="sidebar-tip"><span>DATA PRIVACY</span><p>CSV parsing and analysis run in your browser. No files are uploaded to a server.</p></div><div class="profile"><div class="profile-avatar">A</div><div><strong>Analyst workspace</strong><small>Demo environment</small></div><span>⌄</span></div></div>
+ </aside>
+ <div class="main">
+ <header class="header"><div class="breadcrumbs">Workspace <span>/</span> <strong>AI Analyst</strong></div><div class="header-actions"><span class="status-pill"><i></i> LOCAL DEMO</span><button id="download-data" class="outline-button">↓ Download data</button><div class="profile-avatar mini">A</div></div></header>
+ <main class="workspace">
+  <section id="welcome" class="welcome"><div class="welcome-icon"><span>✦</span></div><div class="label-intro">YOUR DATA, ANSWERED</div><h1>Hi! I'm your data analyst.</h1><p>Ask a business question, explore a chart, and see exactly how the result was calculated.</p><div class="example-label">TRY ASKING</div><div class="examples">
+    <button data-example="Total revenue by region"><span class="example-icon">▤</span><span>Show revenue by region</span><span class="arrow">↗</span></button>
+    <button data-example="Monthly sales trend"><span class="example-icon">⌁</span><span>How has sales changed monthly?</span><span class="arrow">↗</span></button>
+    <button data-example="Top 5 products by revenue"><span class="example-icon">▥</span><span>Top 5 performing products</span><span class="arrow">↗</span></button>
+    <button data-example="Why did revenue change?"><span class="example-icon">✧</span><span>Why did revenue change?</span><span class="arrow">↗</span></button>
+  </div></section>
+  <section id="messages" aria-live="polite" class="messages"></section>
+  <div class="composer-wrap"><div class="data-context"><span class="data-indicator">▦</span><strong id="data-badge">Retail Sales · Demo</strong><span class="context-detail">Active dataset</span></div>
+   <form id="question-form" class="composer"><label for="question" class="sr-only">Ask your data a question</label><textarea id="question" placeholder="Ask a question about your data..." rows="2"></textarea><div class="composer-footer"><span class="composer-hint">✦ Questions grounded in your dataset</span><button type="submit" class="send-btn" aria-label="Analyze question">➤</button></div></form>
+   <p class="bottom-hint" id="hint">Supported: revenue, profit, orders, quantity, region, product, category, channel, monthly, yearly and why changes.</p>
+   <p class="disclaimer">Unofficial independent recreation · Sample data only · Not affiliated with ThoughtSpot · Rule-based analyst, not a generative AI model</p>
+  </div>
+ </main>
+ </div>
+ <aside class="saved-panel" id="saved-panel" hidden><h3>Saved answers</h3><p>No answers saved yet.</p></aside>
+ <div id="toast" role="status"></div>
+</div>
+<script type="module" src="./src/app.js"></script>
+</body></html>
