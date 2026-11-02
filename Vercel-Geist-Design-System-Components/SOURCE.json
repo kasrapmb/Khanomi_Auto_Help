@@ -1,0 +1,45 @@
+{
+  "reference": "https://vercel.com/geist/introduction",
+  "artifact_type": "Independent design-system component and UX study",
+  "original_geist_ui_source_included": false,
+  "original_geist_ui_source_recovered": false,
+  "live_reference_observation": {
+    "request": "HTTPS GET https://vercel.com/geist/introduction",
+    "http_status": 403,
+    "browser_recording": false,
+    "visual_parity_verified": false
+  },
+  "implementation": {
+    "author": "kasrapmb",
+    "frontend": "React 18 / Vite 6 / lucide-react / native HTML controls",
+    "component_examples": 11,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "backend": null,
+    "project_data": "Four fictional sample projects; CRUD is session-only",
+    "storage": "Theme and active component only, in origin-scoped localStorage",
+    "automatic_external_runtime_requests": false
+  },
+  "official_font_assets": {
+    "package": "geist@1.9.0",
+    "repository": "https://github.com/vercel/geist-font",
+    "included": [
+      "Geist Sans variable WOFF2",
+      "Geist Mono variable WOFF2"
+    ],
+    "modified": false,
+    "license": "SIL Open Font License 1.1",
+    "license_path": "licenses/Geist-OFL.txt",
+    "provenance_and_checksums": "licenses/FONT-SOURCE.json",
+    "vendoring": "Official packaged fonts are local static assets; the Next.js font loader is not a dependency"
+  },
+  "skill": {
+    "repository": "https://github.com/kasrapmb/REA_skills_Codex",
+    "commit": "e7c312d45da8ceea3864ed4afc8fbfc627dac53f",
+    "name": "reverse-engineer-anything",
+    "usage": "Evidence boundaries and independent reconstruction; no connected REA MCP or original UI source recovery claimed."
+  },
+  "license": "MIT for independently authored source; font files retain SIL OFL 1.1 and dependencies retain their licenses"
+}

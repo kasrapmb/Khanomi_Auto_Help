@@ -1,0 +1,23 @@
+{
+  "npm_package": "geist",
+  "version": "1.9.0",
+  "repository": "https://github.com/vercel/geist-font",
+  "package_tarball": "https://registry.npmjs.org/geist/-/geist-1.9.0.tgz",
+  "package_integrity": "sha512-uxiyxH5PaKDaK2//ln06NxJEz5gc6771BTwSs1YFgNnASGtp1SYD3VZShSIijvlNwDjMgHnzqye4MmIUTspEzw==",
+  "license": "SIL Open Font License 1.1",
+  "modified": false,
+  "files": [
+    {
+      "path": "public/fonts/Geist-Variable.woff2",
+      "package_path": "dist/fonts/geist-sans/Geist-Variable.woff2",
+      "sha256": "5c5588027e59e74e205b9d6c7fd877b261091cee367f6bb3a8d505da14cae512",
+      "bytes": 69576
+    },
+    {
+      "path": "public/fonts/GeistMono-Variable.woff2",
+      "package_path": "dist/fonts/geist-mono/GeistMono-Variable.woff2",
+      "sha256": "cf5bf55f69e043b1ecf04b0719119b7298e94add67ebcaa709a925b945b46b25",
+      "bytes": 71272
+    }
+  ]
+}
