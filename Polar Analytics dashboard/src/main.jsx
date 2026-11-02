@@ -37,6 +37,8 @@ import {
   change,
 } from "./finance.js";
 import "./styles.css";
+import ReportBuilder from "./ReportBuilder.jsx";
+import GoalsAlerts from "./GoalsAlerts.jsx";
 const money = (n) =>
   new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -153,6 +155,7 @@ function App() {
             ["Overview", LayoutDashboard],
             ["Profit & loss", ChartNoAxesCombined],
             ["Reports", FileText],
+            ["Goals & alerts", TrendingUp],
           ].map(([name, Icon]) => (
             <button
               key={name}
@@ -241,7 +244,9 @@ function App() {
                   ? "Business overview"
                   : view === "Profit & loss"
                     ? "Profit & loss"
-                    : "Management reports"}
+                    : view === "Goals & alerts"
+                      ? "Goals & alerts"
+                      : "Management reports"}
               </h1>
               <p>
                 {view === "Overview"
@@ -619,50 +624,59 @@ function App() {
                 expenses.
               </p>
             </section>
+          ) : view === "Goals & alerts" ? (
+            <GoalsAlerts
+              rows={rows}
+              previousRows={selectData(data, days, channel, true)}
+              channel={channel}
+            />
           ) : (
-            <section className="report-grid">
-              {[
-                [
-                  "Executive summary",
-                  "Revenue, profitability, and order performance in one clear snapshot.",
-                  "Overview",
-                ],
-                [
-                  "Profit & loss statement",
-                  "A complete breakdown of income, expenses, and your bottom line.",
-                  "Profit & loss",
-                ],
-                [
-                  "Detailed financial export",
-                  "All selected daily channel records, ready for your spreadsheet.",
-                  "export",
-                ],
-              ].map(([title, desc, target], i) => (
-                <article className="panel report-card" key={title}>
-                  <div className="report-icon">
-                    <FileText size={24} />
-                  </div>
-                  <span className="eyebrow">
-                    {i === 2 ? "CSV EXPORT" : "MANAGEMENT REPORT"}
-                  </span>
-                  <h2>{title}</h2>
-                  <p>{desc}</p>
-                  <div className="report-meta">
-                    <span>{days} days</span>
-                    <span>{channel}</span>
-                  </div>
-                  <button
-                    className="button"
-                    onClick={() =>
-                      target === "export" ? exportCSV() : navigate(target)
-                    }
-                  >
-                    {target === "export" ? "Download CSV" : "Open report"}
-                    <ArrowRight size={15} />
-                  </button>
-                </article>
-              ))}
-            </section>
+            <>
+              <ReportBuilder rows={rows} days={days} channel={channel} />
+              <section className="report-grid">
+                {[
+                  [
+                    "Executive summary",
+                    "Revenue, profitability, and order performance in one clear snapshot.",
+                    "Overview",
+                  ],
+                  [
+                    "Profit & loss statement",
+                    "A complete breakdown of income, expenses, and your bottom line.",
+                    "Profit & loss",
+                  ],
+                  [
+                    "Detailed financial export",
+                    "All selected daily channel records, ready for your spreadsheet.",
+                    "export",
+                  ],
+                ].map(([title, desc, target], i) => (
+                  <article className="panel report-card" key={title}>
+                    <div className="report-icon">
+                      <FileText size={24} />
+                    </div>
+                    <span className="eyebrow">
+                      {i === 2 ? "CSV EXPORT" : "MANAGEMENT REPORT"}
+                    </span>
+                    <h2>{title}</h2>
+                    <p>{desc}</p>
+                    <div className="report-meta">
+                      <span>{days} days</span>
+                      <span>{channel}</span>
+                    </div>
+                    <button
+                      className="button"
+                      onClick={() =>
+                        target === "export" ? exportCSV() : navigate(target)
+                      }
+                    >
+                      {target === "export" ? "Download CSV" : "Open report"}
+                      <ArrowRight size={15} />
+                    </button>
+                  </article>
+                ))}
+              </section>
+            </>
           )}
           <footer>
             <span>

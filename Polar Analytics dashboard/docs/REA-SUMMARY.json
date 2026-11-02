@@ -1,0 +1,28 @@
+{
+  "evidence_id": "ev_6ad09ee711e594203649264118d084d0e3b670dc278acb5d342dc4088445ca25",
+  "operation": "analyze_javascript_application",
+  "predicate_type": "rea.javascript-application-analysis",
+  "provider": {
+    "id": "rea-javascript-application",
+    "name": "REA JavaScript application analyzer",
+    "version": "1"
+  },
+  "confidence": "derived",
+  "authority": "shipped-artifact",
+  "limitations": [
+    "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+    "Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.",
+    "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+    "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+    "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+    "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+  ],
+  "scope": "91 inline script blocks extracted from homepage, business intelligence and reporting marketing HTML. Not the private dashboard; external bundles excluded.",
+  "root_artifact_sha256": "fb8c507d66067c8085b63b9beb81ece2b665553f1ab712d0b325fc9d98d7ecbf",
+  "inventory_graph_sha256": "e01a1457df4d0d9f2f59f24e4dab7bf9017dea71c62314008144ca2479628abe",
+  "graph_counts": {
+    "nodes": 134,
+    "edges": 206
+  },
+  "integrity_contradictions": []
+}

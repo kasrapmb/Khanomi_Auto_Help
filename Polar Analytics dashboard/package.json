@@ -7,15 +7,17 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --test src/finance.test.js"
+    "test": "node --test src/*.test.js",
+    "test:browser": "node scripts/browser-smoke.cjs"
   },
   "dependencies": {
+    "lucide-react": "0.468.0",
     "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "lucide-react": "0.468.0"
+    "react-dom": "18.3.1"
   },
   "devDependencies": {
-    "vite": "6.4.1",
-    "@vitejs/plugin-react": "4.3.4"
+    "@vitejs/plugin-react": "4.3.4",
+    "playwright-core": "1.57.0",
+    "vite": "6.4.1"
   }
 }
