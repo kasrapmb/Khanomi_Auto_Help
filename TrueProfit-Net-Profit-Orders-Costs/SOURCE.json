@@ -1,0 +1,37 @@
+{
+  "reference": "https://trueprofit.io/",
+  "artifact_type": "Independent net-profit, orders and costs UX reconstruction",
+  "original_product_source_included": false,
+  "original_product_source_recovered": false,
+  "live_reference_observation": {
+    "request": "HTTPS GET https://trueprofit.io/",
+    "http_status": 403,
+    "browser_recording": false,
+    "visual_parity_verified": false
+  },
+  "implementation": {
+    "author": "kasrapmb",
+    "frontend": "React 18 / Vite 6 / lucide-react / native SVG",
+    "backend": null,
+    "data": "180 deterministic fictional orders and 120 daily store cost records",
+    "stores": "Shopify and Amazon are fictional store labels; no integrations",
+    "currency": "USD; integer cents throughout the financial ledger",
+    "date_window": "2026-09-03 through 2026-11-01",
+    "storage": "Only user-added expenses persist in origin-scoped localStorage",
+    "external_connections": false
+  },
+  "accounting_model": {
+    "revenue": "gross - discount - refund + shippingCollected",
+    "netProfit": "revenue - cogs - shippingCost - paymentFees - fulfillment - ads - operating - customExpense",
+    "tax": "Pass-through sample tax excluded from revenue and profit",
+    "refund_costs": "No automatic COGS recovery, fee reversal or restocking credit",
+    "allocation": "Deterministic equal integer-cent allocation across eligible orders on each date and store; all-store expenses use all orders on that expense date"
+  },
+  "skill": {
+    "repository": "https://github.com/kasrapmb/REA_skills_Codex",
+    "commit": "e7c312d45da8ceea3864ed4afc8fbfc627dac53f",
+    "name": "reverse-engineer-anything",
+    "usage": "Evidence boundaries and independent reconstruction workflow; no connected REA MCP, original-source recovery or REA Evidence IDs claimed."
+  },
+  "license": "MIT for independently authored source; dependencies retain their licenses"
+}
