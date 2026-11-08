@@ -23,3 +23,4 @@ const search=document.querySelector('.search input');search.onkeydown=e=>{if(e.k
 
 import { initEffects } from './effects.js';
 initEffects();
+import './theme.css';

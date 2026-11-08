@@ -1,0 +1,90 @@
+/* Reference palette: Midnight Black #0B0B0C, Pure White #FFFFFF, Lime #C6F432.
+   The light well and its motion are a reconstruction from a still image. */
+:root{--canvas:#0b0b0c;--surface:#151611;--surface-raised:#1c1e16;--accent:#c6f432;--accent-soft:#e0ff85;--ink:#fff;--muted:#a5a79b;--line:#ffffff15;--cyan:var(--accent);color:var(--ink);background:var(--canvas);color-scheme:dark}
+body{background:radial-gradient(ellipse at 58% 105%,#56681718,transparent 56%),var(--canvas);color:var(--ink)}
+header{background:#0b0b0cd9;border-color:var(--line)}
+aside{border-color:var(--line);background:linear-gradient(180deg,#0b0b0c,#10110dc9)}
+.brand .lotus{filter:drop-shadow(0 0 9px #c6f43226)}
+.brand .lotus g{stroke:var(--accent)}
+.brand small{color:#b2b3ac}
+p,footer{color:var(--muted)}
+.search{background:#ffffff04;border-color:#ffffff1a}
+.search input{color:var(--ink)}
+.search input::placeholder{color:#989b90}
+.search svg{color:var(--accent)}
+.search:hover,.search:focus-within{background:#c6f43205;border-color:#c6f43266;box-shadow:0 0 0 3px #c6f43208,0 0 24px #c6f4320c}
+kbd{background:#ffffff08;color:#babcb2}
+.status{border-color:#ffffff19;background:#ffffff03;color:#b4b6ab}
+.status b,footer span{color:var(--accent)}
+.plain{color:#a3a59b}
+.plain:hover,.text-button:hover{color:var(--accent-soft);filter:drop-shadow(0 0 6px #c6f43244)}
+.avatar{background:linear-gradient(140deg,#33372b,#22241d);border:1px solid #ffffff1c;color:#e5e7dc}
+.avatar:hover{box-shadow:0 0 0 3px #c6f43210,0 0 22px #c6f43216}
+.nav-item{color:#a8aaa0}
+.nav-item.active{color:#e7ff9d;background:linear-gradient(100deg,#c6f43220,#c6f43206);border-color:#c6f43266;box-shadow:inset 3px 0 var(--accent),0 0 24px #c6f43208}
+.nav-item:hover,.nav-item:focus-visible{color:white;border-color:#c6f43244;background-color:#c6f43209;box-shadow:inset 3px 0 var(--accent),0 0 18px #c6f4320a}
+.nav-item:hover svg{filter:drop-shadow(0 0 7px #c6f43255)}
+.upgrade{border-color:#c6f43230;background:radial-gradient(ellipse at 50% 0,#c6f43213,transparent 70%),#13150fe8;box-shadow:0 8px 28px #0003}
+.upgrade>svg{color:var(--accent);filter:drop-shadow(0 0 12px #c6f43233)}
+em,.text-button{color:var(--accent)}
+.primary{color:#111507;background:var(--accent);border-color:#dcff78;box-shadow:0 3px 12px #0003,0 0 20px #c6f4321a}
+.primary:hover{background:#d9ff68;color:#111507;box-shadow:0 0 0 3px #c6f43212,0 0 28px #c6f43233}
+.welcome{border-color:#c6f43228;background:#c6f43208;box-shadow:inset 0 1px #ffffff04;color:#d8ddc7}
+.hero h1 em{text-shadow:0 0 26px #c6f43220}
+.hero>p{color:#b8bbad}
+.coin{background:linear-gradient(125deg,#d6fb7c 0%,#5f711f 4%,#222c10 12%,#0e120b 45%,#1d2810 72%,#a4c82e 95%,#323d18);border-color:#d5ed9a99;box-shadow:8px 4px 0 #303a1d,0 0 45px #c6f43218,inset 4px 0 16px #c6f43244}
+.coin .lotus{filter:drop-shadow(0 4px 6px #0008)}
+.coin .lotus stop:first-child{stop-color:#efffc3}
+.coin .lotus stop:nth-child(2){stop-color:#c6f432}
+.coin .lotus stop:last-child{stop-color:#819d2c}
+.orbit{border-left-color:#c6f43206;box-shadow:-10px 0 30px #c6f43209}
+.waves{stroke:var(--accent);opacity:.24}
+.panel{border-color:#ffffff16;background:linear-gradient(140deg,#20231ad9,#11130ee8 65%);box-shadow:inset 0 1px #ffffff06,0 16px 40px #0002;backdrop-filter:blur(12px)}
+.panel::before,.upgrade::before{background:radial-gradient(260px circle at var(--pointer-x) var(--pointer-y),#e7ff9a,#c6f43288 35%,#738d2944 58%,transparent 80%)}
+.panel::after,.upgrade::after{background:radial-gradient(320px circle at var(--pointer-x) var(--pointer-y),#c6f43213,transparent 70%)}
+.badge,.purple .badge,.lavender .badge,.badge.purple{background:radial-gradient(circle at 30% 20%,#c6f43220,#c6f43209);color:var(--accent);box-shadow:inset 0 1px #e2ff9e0c}
+.badge svg{filter:drop-shadow(0 0 8px #c6f43222)}
+.purple .badge,.badge.purple{color:#deedaf;background:#abbc6d14}
+.lavender .badge{color:#e4e9d7;background:#cbd3ac12}
+.chart,.chart.purple,.chart.lavender{color:var(--accent);filter:drop-shadow(0 4px 9px #c6f43222)}
+.chart.purple{color:#a5bf64}
+.chart.lavender{color:#dfe9c5}
+.change{color:var(--accent)}
+.change span{color:#b1b5a3}
+.orange{color:#e7d48b}
+.periods button,.tabs button{background:#ffffff04;color:#aeb3a1}
+.periods button:hover,.tabs button:hover{border-color:#c6f43255;background-color:#c6f43212;color:white}
+.selected{background:var(--accent)!important;color:#111507!important;border-color:#d7ff60!important;box-shadow:0 0 18px #c6f43222}
+.tabs{border-color:#ffffff15;background:#0c0e0ac9}
+.workspace{border-color:#c6f43228;background:radial-gradient(ellipse at 15% 80%,#c6f43214,transparent 80%),#171b12b8}
+.large-icon{color:var(--accent);background:linear-gradient(140deg,#394820,#202c12);box-shadow:0 0 24px #c6f43213;border:1px solid #c6f43222}
+.round-arrow{background:var(--accent);color:#142006}
+.tool-grid button{background:linear-gradient(140deg,#272b20,#181b14);border-color:#ffffff13}
+.tool-grid svg,.tool-grid button:first-child svg{color:var(--accent)}
+.tool-grid button:nth-child(even) svg{color:#d3dfa9}
+.tool-grid button:hover,.workspace:hover,.tool-grid button:nth-child(even):hover{border-color:#c6f43277;box-shadow:0 8px 24px #0005,0 0 20px #c6f4320e,inset 0 0 20px #c6f43208}
+.tool-grid button:hover svg{filter:drop-shadow(0 0 8px #c6f43244)}
+.workspace:hover .large-icon{box-shadow:0 0 36px #c6f43233}
+.market-row{background:linear-gradient(90deg,#d6e7ad07,transparent);border-color:#ffffff09}
+.market-row:hover{background:linear-gradient(90deg,#c6f43214,#c6f43203);box-shadow:inset 2px 0 var(--accent)}
+button::after{background:radial-gradient(100px circle at var(--pointer-x,50%) var(--pointer-y,50%),#deff981c,transparent 75%)}
+button:focus-visible,a:focus-visible{outline-color:var(--accent);box-shadow:0 0 0 5px #c6f43212,0 0 20px #c6f43216}
+.click-ripple{background:#e4ffa133}
+.motion-toggle[aria-pressed="true"]{color:var(--accent)}
+.motion-toggle[aria-pressed="true"] svg{filter:drop-shadow(0 0 5px #c6f43244)}
+dialog{border-color:#c6f43233;background:linear-gradient(140deg,#24291b,#10120e);box-shadow:0 0 80px #c6f43212}
+dialog h2{color:var(--accent)}
+dialog input{background:#0b0d09;border-color:#c6f43233;color:white}
+dialog input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+dialog::backdrop{background:#070806c9}
+/* A broad floor glow with soft vertical shafts, rather than a flat green wash. */
+.aurora{opacity:1;filter:blur(40px);border-radius:50%}
+.aurora-one{width:90vw;height:76vh;left:8%;top:auto;bottom:-43vh;background:radial-gradient(ellipse at 50% 42%,#d8ff78a6 0%,#c6f43266 15%,#a6d02a2b 36%,transparent 68%);transform-origin:50% 90%}
+.aurora-two{width:65vw;height:70vh;left:22%;right:auto;top:auto;bottom:-34vh;background:radial-gradient(ellipse at 50% 65%,#e4ff9a55,#a4d32322 35%,transparent 65%);filter:blur(22px)}
+.ambient-grid{inset:20% 0 0;opacity:.4;background-image:linear-gradient(#d5f88705 1px,transparent 1px),linear-gradient(90deg,#d5f88705 1px,transparent 1px);background-size:80px 80px;mask-image:linear-gradient(transparent,#0008)}
+.ambient-beams{position:absolute;left:20%;right:9%;height:70vh;bottom:-20vh;background:repeating-linear-gradient(92deg,transparent 0 24px,#d4ff6112 25px,#d4ff6105 28px,transparent 33px 58px);filter:blur(5px);mask-image:radial-gradient(ellipse at 50% 100%,black,transparent 67%);transform-origin:50% 100%;opacity:.65}
+@keyframes lime-light-breathe{0%,100%{opacity:.4;transform:scaleX(.95)}50%{opacity:.8;transform:scaleX(1.05)}}
+@media(prefers-reduced-motion:no-preference){body[data-motion="on"] .ambient-beams{animation:lime-light-breathe 12s ease-in-out infinite}}
+body[data-motion="off"] .ambient-beams{animation:none}
+@media(hover:none){.aurora{filter:blur(28px)}.ambient-beams{filter:blur(3px)}}
+@media(max-width:1000px){.aurora-one{width:140vw;left:-20%;height:65vh;bottom:-35vh}.aurora-two{width:120vw;left:-10%;bottom:-35vh}.ambient-beams{left:0;right:0;height:65vh;bottom:-20vh}}

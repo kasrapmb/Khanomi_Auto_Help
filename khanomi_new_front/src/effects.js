@@ -9,7 +9,7 @@ export function initEffects() {
  const ambient = document.createElement('div');
  ambient.className = 'ambient';
  ambient.setAttribute('aria-hidden', 'true');
- ambient.innerHTML = '<span class="aurora aurora-one"></span><span class="aurora aurora-two"></span><span class="ambient-grid"></span>';
+ ambient.innerHTML = '<span class="aurora aurora-one"></span><span class="aurora aurora-two"></span><span class="ambient-grid"></span><span class="ambient-beams"></span>';
  document.body.prepend(ambient);
  const toggle = document.createElement('button');
  toggle.className = 'motion-toggle plain';
