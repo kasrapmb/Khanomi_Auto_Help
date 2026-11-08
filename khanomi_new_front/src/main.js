@@ -20,3 +20,6 @@ document.querySelectorAll('.periods,.tabs').forEach(group=>group.querySelectorAl
 document.querySelector('.close').onclick=()=>dialog.close();dialog.onclick=e=>{if(e.target===dialog)dialog.close();};
 document.querySelector('.notification').onclick=()=>openPanel('اعلان‌ها — همه سیستم‌ها پایدارند');document.querySelector('.avatar').onclick=()=>openPanel('حساب مدیر');
 const search=document.querySelector('.search input');search.onkeydown=e=>{if(e.key==='Enter'&&search.value.trim())openPanel(`نتایج جستجو: ${search.value.trim()}`);};document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();search.focus();}});
+
+import { initEffects } from './effects.js';
+initEffects();
